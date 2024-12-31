@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lorcana Pack Simulator</title>
+    <style>
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+        }
+        .image-grid img {
+            width: 100%;
+            height: auto;
+        }
+        .controls {
+            padding: 1rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <select id="setSelect">
+            {% for set in set_folder %}
+            <option value="{{ set }}">{{ set }}</option>
+            {% endfor %}
+        </select>
+        <button onclick="processJson()">Open Pack</button>
+    </div>
+    <div id="imageGrid" class="image-grid"></div>
+
+    <script>
+        async function processJson() {
+            const setSelected = document.getElementById('setSelect').value;
+            const formData = new FormData();
+            formData.append('set_selected', setSelected);
+
+            const response = await fetch('/process', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                const grid = document.getElementById('imageGrid');
+                grid.innerHTML = '';
+                data.images.forEach(image => {
+                    const img = document.createElement('img');
+                    img.src = `{{set_directory}}/${data.set}/${image}`;
+                    grid.appendChild(img);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
