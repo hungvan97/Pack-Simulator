@@ -1,8 +1,10 @@
 import json
+from ml_dtypes import int4
 import requests
 from pathlib import Path
 import aiohttp
 import timingexecution as te
+from random import sample
 
 async def read_json_file(filename) -> None:
     try:
@@ -55,3 +57,27 @@ async def download_image(url, dir, number, id) -> bool:
     with open(file=filename, mode='wb') as file:
         file.write(image_content)
         return True
+    
+async def select_random_card(set_selected: str, rarity: str, number: int): #-> None | list[Any]
+    """Select random numnber of card to be contained in the pack
+
+    Args:
+        set_selected (str): selected set
+        rarity (str): rarity of the card
+        number (int): number of cards to be selected based on rarity
+    Returns:
+        None | list[Any]: list of selected card's metadata
+    """
+    # Get list of card's metadata from selected set
+    json_path = f"asset/source_image/setdata.{set_selected[-1]}.json"
+    try:
+        with open(file=json_path, mode='r') as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        print(f"Error: File '{json_path}' not found")
+        return None
+    
+    # Extract pool of card that match rarity and select randomly
+    card_pool = [c for c in data['cards'] if c['rarity'] == rarity]
+    card_image = [f"{c['number']}_{c['id']}.jpg" for c in card_pool]
+    return sample(population=card_image, k=number)
