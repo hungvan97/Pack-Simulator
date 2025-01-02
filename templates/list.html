@@ -22,9 +22,48 @@
 <body>
     <div class="controls">
         <a href="/"><button>Back to Main Page</button></a>
+        <button onclick="extractAll()">Extract to Image</button>
     </div>
     <div id="imageGrid" class="image-grid"></div>
+    <canvas id="mergeCanvas" style="display:none;"></canvas>
     <script>
+        function extractAll() {
+            const canvas = document.getElementById('mergeCanvas');
+            const ctx = canvas.getContext('2d');
+            const images = document.querySelectorAll('#imageGrid img');
+
+            if (images.length === 0) {
+                alert('No images to download');
+                return;
+            }
+            
+            // Set canvas size (4x4 grid)
+            const CARD_WIDTH = 400;
+            const CARD_HEIGHT = 600;
+            const COLS = 6;
+            const ROWS = Math.ceil(images.length / COLS);
+            
+            canvas.width = CARD_WIDTH * COLS;
+            canvas.height = CARD_HEIGHT * ROWS;
+            
+            // Draw all images to canvas
+            let x = 0, y = 0;
+            for (let img of images) {
+                ctx.drawImage(img, x * CARD_WIDTH, y * CARD_HEIGHT, CARD_WIDTH, CARD_HEIGHT);
+                x++;
+                if (x >= COLS) {
+                    x = 0;
+                    y++;
+                }
+            }
+            
+            // Download canvas as PNG
+            const download_link = document.createElement('a');
+            download_link.download = 'my_card.png';
+            download_link.href = canvas.toDataURL('image/png');  // return a data URL containing a representation of the image 
+                                                        // in the format specified by the type parameter (defaults to PNG as denoted with image/png)
+            download_link.click(); 
+        }
         async function show_list() {
             const response = await fetch('/api/accumulate', {
                 method: 'GET'
