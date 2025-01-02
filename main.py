@@ -1,4 +1,5 @@
 from re import S
+from cv2 import accumulate
 from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -13,12 +14,15 @@ app = FastAPI()     # Create a FastAPI instance (main entry point for web app)
 app.mount(path="/asset", app=StaticFiles(directory="asset"), name="asset")
 templates = Jinja2Templates(directory="templates")  # Create a Jinja2 template instance
 
+# Add global storage for list of accumulated cards, which has been opened
+list_opened_cards = []
 # List all JSON files
 SOURCE_DIR = "./asset/card_image"
 
 SET_FOLDER = [f for f in os.listdir(path=SOURCE_DIR) if os.path.isdir(os.path.join(SOURCE_DIR, f))]
 @app.get(path="/")
 async def home(request: Request) -> _TemplateResponse:
+    del list_opened_cards[:]        # Clear the list of opened cards
     return templates.TemplateResponse(
         name="index.html", 
         context={"request": request, "set_folder": SET_FOLDER, "set_directory": SOURCE_DIR}
@@ -91,9 +95,26 @@ async def pick_set(set_selected: str = Form(...)):# -> dict[str, Any]:
         opened_card.extend(await select_random_card(set_selected=set_selected, rarity="Legendary", number=1))
     else:
         opened_card.extend(await select_random_card(set_selected=set_selected, rarity="Enchanted", number=1))
-    
+
+    # Add opened cards to accumulated list
+    global list_opened_cards
+    list_opened_cards.extend([(set_selected, _card) for _card in opened_card])
     return {"status": "success", "set": set_selected, "images": opened_card}
 
+## API endpoint for data fetching
+@app.get(path="/api/accumulate")
+def accumulate_card() -> dict[str, list]:
+    print("OK", list_opened_cards)
+    return {"opened_card_images": list_opened_cards}
+@app.get(path="/list")
+async def show_opened_cards(request: Request) -> _TemplateResponse:
+    return templates.TemplateResponse(
+        name="list.html",
+        context={
+            "request": request,
+            "set_directory": SOURCE_DIR
+        }
+    )
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app=app, host="127.0.0.1", port=8000)

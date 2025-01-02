@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>List Opened Cards</title>
+    <style>
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+        }
+        .image-grid img {
+            width: 100%;
+            height: auto;
+        }
+        .controls {
+            padding: 1rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <a href="/"><button>Back to Main Page</button></a>
+    </div>
+    <div id="imageGrid" class="image-grid"></div>
+    <script>
+        async function show_list() {
+            const response = await fetch('/api/accumulate', {
+                method: 'GET'
+            });
+            const data = await response.json();
+            
+            const grid = document.getElementById('imageGrid');
+            grid.innerHTML = '';
+            data.opened_card_images.forEach(image => {
+                const img = document.createElement('img');
+                img.src = `{{set_directory}}/${image[0]}/${image[1]}`;
+                grid.appendChild(img);
+            });
+        }
+        // Waits for DOM content to fully load before executing script
+        document.addEventListener('DOMContentLoaded', function() {
+            show_list();
+        });
+    </script>
+</body>
