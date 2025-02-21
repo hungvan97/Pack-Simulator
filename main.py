@@ -104,7 +104,6 @@ async def pick_set(set_selected: str = Form(...)):# -> dict[str, Any]:
 ## API endpoint for data fetching
 @app.get(path="/api/accumulate")
 def accumulate_card() -> dict[str, list]:
-    print("OK", list_opened_cards)
     return {"opened_card_images": list_opened_cards}
 @app.get(path="/list")
 async def show_opened_cards(request: Request) -> _TemplateResponse:
