@@ -1,4 +1,5 @@
 from re import S
+from threading import Timer
 from cv2 import accumulate
 from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
@@ -116,4 +117,12 @@ async def show_opened_cards(request: Request) -> _TemplateResponse:
     )
 if __name__ == "__main__":
     import uvicorn
+    import webbrowser
+    
+    # Open the browser
+    def open_browser() -> None:
+        webbrowser.open(url="http://127.0.0.1:8000", new=1)
+    Timer(2, open_browser).start()
+
+    # Run the server
     uvicorn.run(app=app, host="127.0.0.1", port=8000)
